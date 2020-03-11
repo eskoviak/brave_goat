@@ -5,5 +5,11 @@
     "**/bower_components": true,
     "**/.sfdx": true
   },
-  "salesforcedx-vscode-core.show-cli-success-msg": false
+  "salesforcedx-vscode-core.show-cli-success-msg": false,
+  "files.exclude": {
+    "**/.classpath": true,
+    "**/.project": true,
+    "**/.settings": true,
+    "**/.factorypath": true
+  }
 }
