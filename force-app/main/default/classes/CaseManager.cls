@@ -4,25 +4,11 @@ global with sharing class CaseManager {
     global static Case getCaseById() {
         RestRequest request = RestContext.request;
         // grab the caseId from the end of the URL
-        // ELS accept two query parameters -- id=<sobjectid> or casenumber=<CaseNumber>
-        // String caseId = request.requestURI.substring(
-        // request.requestURI.lastIndexOf('?')+1);
-        Map<String, String> params = request.params;
-        Case result;
-        if(params.containsKey('id')){
-            result = [SELECT CaseNumber, Subject, Status, Origin, Priority
-                           FROM Case
-                           WHERE id = :params.get('id')];
-        } else if(params.containsKey('casenumber')){
-            result = [SELECT CaseNumber, Subject, Status, Origin, Priority
-                           FROM Case
-                           WHERE CaseNumber = :params.get('casenumber')];
-        } else {
-        }
-
-//        Case result =  [SELECT CaseNumber,Subject,Status,Origin,Priority
-//                        FROM Case
-//                        WHERE CaseNumber = :caseId];
+        String caseId = request.requestURI.substring(
+          request.requestURI.lastIndexOf('/')+1);
+        Case result =  [SELECT CaseNumber,Subject,Status,Origin,Priority
+                        FROM Case
+                        WHERE Id = :caseId];
         return result;
     }
     @HttpPost
