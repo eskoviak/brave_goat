@@ -1,32 +1,48 @@
 global with sharing class XDMConnection 
     extends DataSource.Connection {
     
-        public XDMConnection(DataSource.ConnectionParams connectionParams) {}
+        private String APIMUrl;
+        private String SubcriptionKey;
+        private String PhoneRegEx;
 
+        public XDMConnection(DataSource.ConnectionParams connectionParams) {
+            this.APIMUrl = connectionParams.endpoint;
+            this.SubcriptionKey = connectionParams.oauthToken;
+            this.PhoneRegEx = '^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$';
+        }
+
+        /**
+         * The sync function is called during registration and sync to define the tables (objects)
+         * available in the external object
+         */
         override global List<DataSource.Table> sync() {
             List<DataSource.Table> tables = new List<DataSource.Table>();
 
             /**
              * Person Table -- Other than ExternalId, which is mapped to PersonKey, all other
-             * column names are as they appear in the JSON response from the API call.  this
-             * prevents 
+             * column names are as they appear in the JSON response from the API call.  This
+             * prevents needing to double map the data.
              */
             List<DataSource.Column> columns = new List<DataSource.Column>();
             // These are required, standard fields
             columns.add(DataSource.Column.text('ExternalId', 255)); // will be mapped to PersonKey
             columns.add(DataSource.Column.url('DisplayUrl'));
-            // JSON Response fields
+            // JSON Response fields -- Note these are selected from the larger dataset which is returned.
             columns.add(DataSource.Column.text('FullPersonName'));
             columns.add(DataSource.Column.text('FirstName'));
             columns.add(DataSource.Column.text('LastName'));
             columns.add(DataSource.Column.text('MiddleName'));
             columns.add(DataSource.Column.text('EnrichedPrimaryPhone'));
             columns.add(DataSource.Column.text('EnrichedPrimaryEmail'));
-            columns.add(DataSource.Column.text('PostalCode'));
+            columns.add(DataSource.Column.text('MelissaPersonatorAddress.PostalCode'));
             tables.add(DataSource.Table.get('Person', 'FullPersonName', columns));
             return tables;
         }
 
+        /**
+         * The Query Function -- this is called whenever a query (SOQL) is executed against the external object.  The
+         * query particulars are passed in the QueryContext argument.
+         */
         override global DataSource.TableResult query(DataSource.QueryContext context) {
             if (context.tableSelection.columnsSelected.size() == 1 &&
                 context.tableSelection.columnsSelected.get(0).aggregation ==
@@ -48,11 +64,14 @@ global with sharing class XDMConnection
             }
         }
 
-
+        /**
+         * The Search function -- this is called whenever a search (SOSL) is executed against the external object.  The
+         * search parameters are passed in the SearchContext argument.
+         */
         override global List<DataSource.TableResult> search(DataSource.SearchContext context) {
         List<DataSource.TableResult> results = new List<DataSource.TableResult>();
         for (DataSource.TableSelection tableSelection : context.tableSelections) {
-            results.add(DataSource.TableResult.get(tableSelection, getRows(context)));
+            results.add(DataSource.TableResult.get(true, null, tableSelection.tableSelected, getRows(context)));
             }
         return results;
         }
@@ -142,44 +161,77 @@ global with sharing class XDMConnection
             return rows;
         }
 */
-
+        /**
+         * Helper function to perform query operation.
+         */
         private List<Map<String, Object>> getRows(DataSource.QueryContext context){
             DataSource.TableSelection table = context.tableSelection;
             List<Map<String,Object>> rows = new List<Map<String,Object>>();
+            // Handle Person Table -- FROM Person__x
             if(table.tableSelected == 'Person') {
                 String personKey;
                 DataSource.Filter filter = table.filter;
-                // Handle Query by ExternalId (PersonKey)
-                if(filter.columnName == 'ExternalId') {
-                    // special case -- will only return zero or one row
-                    personKey = (String)filter.columnValue;
-                    String APIMurl = 'https://apis.tst.redwingshoes.com/masterdata/v1;rev=2';
-                    Http http = new Http();
-                    HttpRequest request = new HttpRequest();
-                    request.setEndpoint(APIMUrl + '/semarchy/api/rest/query/RWS_MDM_PRD/Person/GD/' + personKey);
-                    request.setMethod('GET');
-                    request.setHeader('Ocp-Apim-Subscription-Key','b21905a5b23f40d88bacbcd01b51fe2e');
-                    HttpResponse response = http.send(request);
-                    if (response.getStatusCode() == 200) {
-                        Map<String, Object> m = (Map<String, Object>)JSON.deserializeUntyped(response.getBody());
-                        Map<String, Object> row = new Map<String, Object>();
-                        for(DataSource.ColumnSelection item : table.columnsSelected){
-                            row.put(item.columnName, m.get(item.columnName));
-                        }
-                        row.put('ExternalId', personKey);
-                        rows.add(row);
-                    } else {
-                        //
+                // Handle Query by ExternalId (PersonKey) -- WHERE ExternalId = <>
+                // special case -- will only return zero or one row
+                personKey = (String)filter.columnValue;  // Map ExternalId -> PersonKey
+                // REST Callout
+                Http http = new Http();
+                HttpRequest request = new HttpRequest();
+                request.setEndpoint(this.APIMUrl + '/semarchy/api/rest/query/RWS_MDM_PRD/Person/GD/' + personKey);
+                request.setMethod('GET');
+                request.setHeader('Ocp-Apim-Subscription-Key',this.SubcriptionKey);
+                HttpResponse response = http.send(request);
+                if (response.getStatusCode() == 200) {
+                    Map<String, Object> m = (Map<String, Object>)JSON.deserializeUntyped(response.getBody());
+                    Map<String, Object> row = new Map<String, Object>();
+                    for(DataSource.ColumnSelection item : table.columnsSelected){
+                        row.put(item.columnName, m.get(item.columnName));
                     }
+                    row.put('ExternalId', personKey);  // Map PersonKey -> ExteranlId.  Prevents Null ExteranlId.
+                    rows.add(row);
+                } else {
+                    // TODO Handle other cases (400, 500)
                 }
             }
             return rows;
         }
 
+        /**
+         * Helper function to perform the search operation.
+         */
         private List<Map<String, Object>> getRows(DataSource.SearchContext context) {
             List<Map<String,Object>> results = new List<Map<String,Object>>();
+            for( DataSource.TableSelection table : context.tableSelections) {
+                // Handle person table
+                if (table.tableSelected == 'Person') {
+                    Pattern phonePattern = Pattern.compile(this.PhoneRegEx);
+                    if (phonePattern.matcher(context.searchPhrase).matches()) {
+                        String phoneNumber = context.searchPhrase.replace('() .-', '');
+                        // REST Callout
+                        Http http = new Http();
+                        HttpRequest request = new HttpRequest();
+                        request.setEndpoint(this.APIMUrl + '/semarchy/api/rest/named-query/RWS_MDM_PRD/GetConsumersByPhone/GD/?PhoneNumber=' +
+                           context.searchPhrase.replace('() .-', ''));
+                        request.setMethod('GET');
+                        request.setHeader('Ocp-Apim-Subscription-Key',this.SubcriptionKey);
+                        //List<Object> records = new List<Map<String, Object>>();
+                        HttpResponse response = http.send(request);                        
+                        if (response.getStatusCode() == 200) {
+                            XDMPhoneResp phones = XDMPhoneResp.parse(response.getBody());
+                            for(XDMPhoneResp.Records person : phones.records) {
+                                Map<String, Object> row = new Map<String, Object>();
+                                row.put('ExternalId', person.Person.PersonKey);
+                                row.put('FirstName', person.Person.FirstName);
+                                row.put('FullPersonName', person.Person.FullPersonName);
+                                results.add(row);
+                            }
+                        } else {
+                            // Handle other Responses (404, etc.)
+                        }
 
+                    }
+                }
+            }
             return results;
-             
         }
 }

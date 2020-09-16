@@ -17,6 +17,8 @@ global with sharing class XDMProvider
     }
 
     override global DataSource.Connection getConnection(DataSource.ConnectionParams connectionParams) {
+        connectionParams.endpoint = 'https://apis.tst.redwingshoes.com/masterdata/v1;rev=2';
+        connectionParams.oauthToken = 'b21905a5b23f40d88bacbcd01b51fe2e';
         return new XDMConnection(connectionParams);
     }
 }
