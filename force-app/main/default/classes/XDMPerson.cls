@@ -1,7 +1,7 @@
-public with sharing class XDMPhoneResp {
-    public XDMPhoneResp() {}
+public with sharing class XDMPerson {
+    public XDMPerson() {}
 
-    public List<Records> records;
+    public List<Person> records;
         
     public class Person {
         public Integer PersonKey;
@@ -11,20 +11,15 @@ public with sharing class XDMPhoneResp {
         public Object MiddleName;
         public String EnrichedPrimaryPhone;
         public String EnrichedPrimaryEmail;
-        public MelissaPersonatorAddress MelissaAddress;
-    }
-
-    public class Records {
-        public Person Person;
+        public MelissaPersonatorAddress MelissaPersonatorAddress;
     }
 
     public class MelissaPersonatorAddress {
         public String PostalCode;
         public String FormattedAddress;
     }
-
     
-    public static XDMPhoneResp parse(String json) {
-        return (XDMPhoneResp) System.JSON.deserialize(json, XDMPhoneResp.class);
+    public static XDMPerson parse(String json) {
+        return (XDMPerson) System.JSON.deserialize(json, XDMPerson.class);
     }
 }

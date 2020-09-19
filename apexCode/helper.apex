@@ -2,7 +2,7 @@
 Account result = [SELECT Id, Name, (SELECT Id, Name FROM Contacts WHERE AccountId = :parentId) FROM Account WHERE Id = :parentId];
 
 System.debug(result); */
-
+/* 
 String personKey = '164328845';
 String rv = '';
 String APIMurl = 'https://apis.tst.redwingshoes.com/masterdata/v1;rev=2';
@@ -20,3 +20,36 @@ if (response.getStatusCode() == 200) {
 }
 
 //System.debug(rv);
+*/
+
+String jsonInput = '{' +
+    '"records": [' +
+    '    {' +
+    '        "PersonKey": 163964654,' +
+    '        "SourceSystem": "XCENTER",' +
+    '        "FirstName": "John",' +
+    '        "LastName": "Green",' +
+    '        "MelissaPersonatorAddress.FormattedAddress" : "300 Red Wing Ave S, 210, Red Wing, MN, 55066"' +
+    '   },' +
+    '   {' +
+    '        "PersonKey": 163964656,' +
+    '        "SourceSystem": "XCENTER",' +
+    '        "FirstName": "John",' +
+    '        "LastName": "White"' +
+    '   }' +
+    ']' +
+'}';
+
+/* Map<String, Object> records = (Map<String, Object>) JSON.deserializeUntyped(jsonInput);
+//List<Map<String, String>> persons = (List<Map<String, String>>) records.get('records');
+List<Object> persons = (List<Object>) records.get('records');
+//Map<String, Object> persons = (Map<String, Object>) JSON.deserializeUntyped(records);
+for( Object p : persons ) {
+    System.debug(p);
+}
+ */
+
+XDMPerson persons = XDMPerson.parse(jsonInput);
+for( XDMPerson.Person person : persons.records ) {
+    System.debug(person.MelissaPersonatorAddress);
+}

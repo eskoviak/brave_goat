@@ -3,12 +3,12 @@ global with sharing class XDMConnection
     
         private String APIMUrl;
         private String SubcriptionKey;
-        private String PhoneRegEx;
+        private Pattern phonePattern;
 
         public XDMConnection(DataSource.ConnectionParams connectionParams) {
             this.APIMUrl = connectionParams.endpoint;
             this.SubcriptionKey = connectionParams.oauthToken;
-            this.PhoneRegEx = '^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$';
+            this.phonePattern = Pattern.compile('^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$');
         }
 
         /**
@@ -34,7 +34,8 @@ global with sharing class XDMConnection
             columns.add(DataSource.Column.text('MiddleName'));
             columns.add(DataSource.Column.text('EnrichedPrimaryPhone'));
             columns.add(DataSource.Column.text('EnrichedPrimaryEmail'));
-            columns.add(DataSource.Column.text('MelissaPersonatorAddress.PostalCode'));
+            columns.add(DataSource.Column.text('MelissaFormattedAddress'));
+            columns.add(DataSource.Column.text('MelissaPostalCode'));
             tables.add(DataSource.Table.get('Person', 'FullPersonName', columns));
             return tables;
         }
@@ -44,24 +45,7 @@ global with sharing class XDMConnection
          * query particulars are passed in the QueryContext argument.
          */
         override global DataSource.TableResult query(DataSource.QueryContext context) {
-            if (context.tableSelection.columnsSelected.size() == 1 &&
-                context.tableSelection.columnsSelected.get(0).aggregation ==
-                    DataSource.QueryAggregation.COUNT) {
-                    List<Map<String,Object>> rows = getRows(context);
-                    List<Map<String,Object>> response =
-                        DataSource.QueryUtils.filter(context, getRows(context));
-                    List<Map<String, Object>> countResponse =
-                        new List<Map<String, Object>>();
-                    Map<String, Object> countRow =
-                        new Map<String, Object>();
-                    countRow.put(
-                        context.tableSelection.columnsSelected.get(0).columnName,
-                        response.size());
-                    countResponse.add(countRow);
-                    return DataSource.TableResult.get(context, countResponse);
-            } else {
-                return DataSource.TableResult.get(true, null, context.tableSelection.tableSelected, getRows(context));
-            }
+            return DataSource.TableResult.get(true, null, context.tableSelection.tableSelected, getRows(context));
         }
 
         /**
@@ -75,163 +59,151 @@ global with sharing class XDMConnection
             }
         return results;
         }
-/*
-        global override List<DataSource.UpsertResult> upsertRows(DataSource.UpsertContext context) {
-            if (context.tableSelected == 'Sample') {
-                List<DataSource.UpsertResult> results = new List<DataSource.UpsertResult>();
-                List<Map<String, Object>> rows = context.rows;
 
-                for (Map<String, Object> row : rows){
-                    // Make a callout to insert or update records in the external system.
-                    HttpResponse response;
-                    // Determine whether to insert or update a record.
-                    if (row.get('ExternalId') == null){
-                        // Send a POST HTTP request to insert new external record.
-                        // Make an Apex callout and get HttpResponse.
-                        response = makePostCallout(
-                            '{"name":"' + row.get('Name') + '","ExternalId":"' + 
-                            row.get('ExternalId') + '"');
-                    } else {
-                        // Send a PUT HTTP request to update an existing external record.
-                        // Make an Apex callout and get HttpResponse.
-                        response = makePutCallout(
-                            '{"name":"' + row.get('Name') + '","ExternalId":"' + 
-                            row.get('ExternalId') + '"',
-                            String.valueOf(row.get('ExternalId')));
-                    }
-
-                    // Check the returned response.
-                    // Deserialize the response.
-                    Map<String, Object> m = (Map<String, Object>)JSON.deserializeUntyped(
-                            response.getBody());
-                    if (response.getStatusCode() == 200){
-                        results.add(DataSource.UpsertResult.success(
-                                String.valueOf(m.get('id'))));
-                    } else {
-                        results.add(DataSource.UpsertResult.failure(
-                                String.valueOf(m.get('id')), 
-                                'The callout resulted in an error: ' + 
-                                response.getStatusCode()));
-                    }
-                } 
-                return results;
-            } 
-            return null;
-        }
-
-
-        global override List<DataSource.DeleteResult> deleteRows(DataSource.DeleteContext context) {
-            if (context.tableSelected == 'Sample'){
-                List<DataSource.DeleteResult> results = new List<DataSource.DeleteResult>();
-                for (String externalId : context.externalIds){
-                    HttpResponse response = makeDeleteCallout(externalId);
-                    if (response.getStatusCode() == 200){
-                        results.add(DataSource.DeleteResult.success(externalId));
-                    }  else {
-                        results.add(DataSource.DeleteResult.failure(externalId, 'Callout delete error:' + response.getBody()));
-                    }
-                }
-                return results;
-            }
-            return null;
-        }
-
-        //  Private helper functions
-        // Helper method to get record values from the external system for the Sample table.
-        private List<Map<String, Object>> getRows () {
-            // Get row field values for the Sample table from the external system via a callout.
-            HttpResponse response = makeGetCallout();
-            // Parse the JSON response and populate the rows.
-            Map<String, Object> m = (Map<String, Object>)JSON.deserializeUntyped(
-                    response.getBody());
-            Map<String, Object> error = (Map<String, Object>)m.get('error');
-            if (error != null) {
-                throwException(string.valueOf(error.get('message')));
-            }
-            List<Map<String,Object>> rows = new List<Map<String,Object>>();
-            List<Object> jsonRows = (List<Object>)m.get('value');
-            if (jsonRows == null) {
-                rows.add(foundRow(m));
-            } else {
-                for (Object jsonRow : jsonRows) {
-                    Map<String,Object> row = (Map<String,Object>)jsonRow;
-                    rows.add(foundRow(row));
-                }
-            }
-            return rows;
-        }
-*/
         /**
-         * Helper function to perform query operation.
+         * Helper function to perform query operation.  Note this is different (in signature DataSource.QueryContext) from the getRows for Search.
          */
         private List<Map<String, Object>> getRows(DataSource.QueryContext context){
             DataSource.TableSelection table = context.tableSelection;
+            DataSource.Filter filter = table.filter;
             List<Map<String,Object>> rows = new List<Map<String,Object>>();
+
             // Handle Person Table -- FROM Person__x
             if(table.tableSelected == 'Person') {
-                String personKey;
-                DataSource.Filter filter = table.filter;
                 // Handle Query by ExternalId (PersonKey) -- WHERE ExternalId = <>
-                // special case -- will only return zero or one row
-                personKey = (String)filter.columnValue;  // Map ExternalId -> PersonKey
-                // REST Callout
-                Http http = new Http();
-                HttpRequest request = new HttpRequest();
-                request.setEndpoint(this.APIMUrl + '/semarchy/api/rest/query/RWS_MDM_PRD/Person/GD/' + personKey);
-                request.setMethod('GET');
-                request.setHeader('Ocp-Apim-Subscription-Key',this.SubcriptionKey);
-                HttpResponse response = http.send(request);
-                if (response.getStatusCode() == 200) {
-                    Map<String, Object> m = (Map<String, Object>)JSON.deserializeUntyped(response.getBody());
-                    Map<String, Object> row = new Map<String, Object>();
-                    for(DataSource.ColumnSelection item : table.columnsSelected){
-                        row.put(item.columnName, m.get(item.columnName));
-                    }
-                    row.put('ExternalId', personKey);  // Map PersonKey -> ExteranlId.  Prevents Null ExteranlId.
-                    rows.add(row);
-                } else {
-                    // TODO Handle other cases (400, 500)
+                if ( filter.columnName == 'ExternalId') {
+                    HttpResponse response = getXDMData(this.APIMUrl + 
+                        '/semarchy/api/rest/query/RWS_MDM_PRD/Person/GD/' + 
+                        '?$f=PersonKey=' + (String)filter.columnValue);  // Map ExternalId -> PersonKey
+                        if (response.getStatusCode() == 200) {
+                            Map<String, Object> m = (Map<String, Object>)JSON.deserializeUntyped(response.getBody());
+                            Map<String, Object> row = new Map<String, Object>();
+                            for(DataSource.ColumnSelection item : table.columnsSelected){
+                                row.put(item.columnName, m.get(item.columnName));
+                            }
+                            row.put('ExternalId', personKey);  // Map PersonKey -> ExteranlId.  Prevents Null ExteranlId.
+                            rows.add(row);
+                        } else {
+                            // TODO Handle other cases (400, 500)
+                        }
                 }
             }
             return rows;
         }
 
         /**
-         * Helper function to perform the search operation.
+         * Helper function to perform the API call out
+         * PARAM xDMUri -- the path to call on semarchy and query params, if any
+         */
+        private HttpResponse getXDMData(String xDMUri) {
+            Http http = new Http();
+            HttpRequest request = new HttpRequest();
+            request.setEndpoint(this.APIMUrl + xDMUri);
+            request.setMethod('GET');
+            request.setHeader('Ocp-Apim-Subscription-Key',this.SubcriptionKey);
+            return http.send(request);
+        }
+
+        /**
+         * Helper function to perform the search operation.  Different signature than getRows above.
          */
         private List<Map<String, Object>> getRows(DataSource.SearchContext context) {
             List<Map<String,Object>> results = new List<Map<String,Object>>();
+            List<String> searchTokens = getTokens(context.searchPhrase);
             for( DataSource.TableSelection table : context.tableSelections) {
                 // Handle person table
                 if (table.tableSelected == 'Person') {
-                    Pattern phonePattern = Pattern.compile(this.PhoneRegEx);
-                    if (phonePattern.matcher(context.searchPhrase).matches()) {
-                        String phoneNumber = context.searchPhrase.replace('() .-', '');
-                        // REST Callout
-                        Http http = new Http();
-                        HttpRequest request = new HttpRequest();
-                        request.setEndpoint(this.APIMUrl + '/semarchy/api/rest/named-query/RWS_MDM_PRD/GetConsumersByPhone/GD/?PhoneNumber=' +
-                           context.searchPhrase.replace('() .-', ''));
-                        request.setMethod('GET');
-                        request.setHeader('Ocp-Apim-Subscription-Key',this.SubcriptionKey);
-                        //List<Object> records = new List<Map<String, Object>>();
-                        HttpResponse response = http.send(request);                        
-                        if (response.getStatusCode() == 200) {
-                            XDMPhoneResp phones = XDMPhoneResp.parse(response.getBody());
-                            for(XDMPhoneResp.Records person : phones.records) {
-                                Map<String, Object> row = new Map<String, Object>();
-                                row.put('ExternalId', person.Person.PersonKey);
-                                row.put('FirstName', person.Person.FirstName);
-                                row.put('FullPersonName', person.Person.FullPersonName);
-                                results.add(row);
+                    switch on searchTokens.size() {
+                        when 1 {
+                            /**
+                             Test for phone number.  If true, then use name-query GetConsumersByPhone as this
+                             requires a join at semarchy and this is the fastest way to do that
+                            */
+                            if (this.phonePattern.matcher(searchTokens[0]).matches()) {
+                                HttpResponse response = getXDMData('/semarchy/api/rest/named-query/RWS_MDM_PRD/GetConsumersByPhone/GD/?PhoneNumber=' +
+                                    searchTokens[0].replace('() .-', ''));
+                                if (response.getStatusCode() == 200) {
+                                    XDMPhoneResp phones = XDMPhoneResp.parse(response.getBody());
+                                    for(XDMPhoneResp.Records person : phones.records) {
+                                        Map<String, Object> row = new Map<String, Object>();
+                                        row.put('ExternalId', person.Person.PersonKey);
+                                        row.put('FirstName', person.Person.FirstName);
+                                        row.put('FullPersonName', person.Person.FullPersonName);
+                                        results.add(row);
+                                    }
+                                } else {
+                                    // Handle other Responses (404, etc.)
+                                }
                             }
-                        } else {
-                            // Handle other Responses (404, etc.)
                         }
-
+                        when 2 { }
+                        when 3 {
+                            Map<String, Object> row = new Map<String, Object>();
+                            row.put('ExternalId', '9999999999');
+                            row.put('FirstName', searchTokens[0]);
+                            row.put('LastName', searchTokens[1]);
+                            row.put('FullPersonName', searchTokens[0]+' '+searchTokens[1]);
+                            results.add(row);
+                        }
                     }
                 }
             }
             return results;
+        }
+         
+        /**
+         * Helper function to parse a phase into a List of tokens, preserving spaces in items that are quoted 
+         */
+        private List<String> getTokens(String phrase){
+            phrase = phrase.normalizeSpace();  // remove leading/trailing/multi space
+            List<String> tokens = new List<String>();
+            Integer testChar;
+            Integer startToken = 0;
+            Boolean quoteOn = false;
+            Boolean tokenOn = false;
+            for(Integer i = 0; i< phrase.length(); i++){
+                testChar = phrase.charAt(i);
+
+                // 34 = double quote
+                if ((testChar == 34)  && !quoteOn) {
+                    quoteOn = true;
+                    startToken = i+1;
+                    tokenOn = true;
+                    continue;
+                }
+
+                if ((testChar == 34) && quoteOn) {
+                    quoteOn = false;
+                    tokenOn = false;
+                    tokens.add(phrase.substring(startToken, i));
+                    continue;
+                }
+
+                // 32 = space -- the assumed delimiter
+                if (testChar == 32 && quoteOn) {
+                    continue;
+                }
+
+                if (testChar == 32 && tokenOn) {
+                    tokenOn = false;
+                    tokens.add(phrase.substring(startToken, i));
+                    continue;
+                }
+
+                if (tokenOn) {
+                    continue;
+                }
+
+                if (!tokenOn) {
+                    tokenOn = true;
+                    startToken = i;
+                    continue;
+                }
+            }
+            // handles the end of string with tokenOn
+            if(tokenOn) {
+                tokens.add(phrase.substring(startToken));
+            }      
+            return tokens;          
         }
 }

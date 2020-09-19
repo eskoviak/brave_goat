@@ -1,0 +1,107 @@
+
+        global override List<DataSource.UpsertResult> upsertRows(DataSource.UpsertContext context) {
+            if (context.tableSelected == 'Sample') {
+                List<DataSource.UpsertResult> results = new List<DataSource.UpsertResult>();
+                List<Map<String, Object>> rows = context.rows;
+
+                for (Map<String, Object> row : rows){
+                    // Make a callout to insert or update records in the external system.
+                    HttpResponse response;
+                    // Determine whether to insert or update a record.
+                    if (row.get('ExternalId') == null){
+                        // Send a POST HTTP request to insert new external record.
+                        // Make an Apex callout and get HttpResponse.
+                        response = makePostCallout(
+                            '{"name":"' + row.get('Name') + '","ExternalId":"' + 
+                            row.get('ExternalId') + '"');
+                    } else {
+                        // Send a PUT HTTP request to update an existing external record.
+                        // Make an Apex callout and get HttpResponse.
+                        response = makePutCallout(
+                            '{"name":"' + row.get('Name') + '","ExternalId":"' + 
+                            row.get('ExternalId') + '"',
+                            String.valueOf(row.get('ExternalId')));
+                    }
+
+                    // Check the returned response.
+                    // Deserialize the response.
+                    Map<String, Object> m = (Map<String, Object>)JSON.deserializeUntyped(
+                            response.getBody());
+                    if (response.getStatusCode() == 200){
+                        results.add(DataSource.UpsertResult.success(
+                                String.valueOf(m.get('id'))));
+                    } else {
+                        results.add(DataSource.UpsertResult.failure(
+                                String.valueOf(m.get('id')), 
+                                'The callout resulted in an error: ' + 
+                                response.getStatusCode()));
+                    }
+                } 
+                return results;
+            } 
+            return null;
+        }
+
+
+        global override List<DataSource.DeleteResult> deleteRows(DataSource.DeleteContext context) {
+            if (context.tableSelected == 'Sample'){
+                List<DataSource.DeleteResult> results = new List<DataSource.DeleteResult>();
+                for (String externalId : context.externalIds){
+                    HttpResponse response = makeDeleteCallout(externalId);
+                    if (response.getStatusCode() == 200){
+                        results.add(DataSource.DeleteResult.success(externalId));
+                    }  else {
+                        results.add(DataSource.DeleteResult.failure(externalId, 'Callout delete error:' + response.getBody()));
+                    }
+                }
+                return results;
+            }
+            return null;
+        }
+
+        //  Private helper functions
+        // Helper method to get record values from the external system for the Sample table.
+        private List<Map<String, Object>> getRows () {
+            // Get row field values for the Sample table from the external system via a callout.
+            HttpResponse response = makeGetCallout();
+            // Parse the JSON response and populate the rows.
+            Map<String, Object> m = (Map<String, Object>)JSON.deserializeUntyped(
+                    response.getBody());
+            Map<String, Object> error = (Map<String, Object>)m.get('error');
+            if (error != null) {
+                throwException(string.valueOf(error.get('message')));
+            }
+            List<Map<String,Object>> rows = new List<Map<String,Object>>();
+            List<Object> jsonRows = (List<Object>)m.get('value');
+            if (jsonRows == null) {
+                rows.add(foundRow(m));
+            } else {
+                for (Object jsonRow : jsonRows) {
+                    Map<String,Object> row = (Map<String,Object>)jsonRow;
+                    rows.add(foundRow(row));
+                }
+            }
+            return rows;
+        }
+*/
+
+override global DataSource.TableResult query(DataSource.QueryContext context) {
+            if (context.tableSelection.columnsSelected.size() == 1 &&
+                context.tableSelection.columnsSelected.get(0).aggregation ==
+                    DataSource.QueryAggregation.COUNT) {
+                    List<Map<String,Object>> rows = getRows(context);
+                    List<Map<String,Object>> response =
+                        DataSource.QueryUtils.filter(context, getRows(context));
+                    List<Map<String, Object>> countResponse =
+                        new List<Map<String, Object>>();
+                    Map<String, Object> countRow =
+                        new Map<String, Object>();
+                    countRow.put(
+                        context.tableSelection.columnsSelected.get(0).columnName,
+                        response.size());
+                    countResponse.add(countRow);
+                    return DataSource.TableResult.get(context, countResponse);
+            } else {
+                return DataSource.TableResult.get(true, null, context.tableSelection.tableSelected, getRows(context));
+            }
+        }
