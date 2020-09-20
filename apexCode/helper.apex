@@ -21,7 +21,7 @@ if (response.getStatusCode() == 200) {
 
 //System.debug(rv);
 */
-
+/* 
 String jsonInput = '{' +
     '"records": [' +
     '    {' +
@@ -40,6 +40,7 @@ String jsonInput = '{' +
     ']' +
 '}';
 
+ */
 /* Map<String, Object> records = (Map<String, Object>) JSON.deserializeUntyped(jsonInput);
 //List<Map<String, String>> persons = (List<Map<String, String>>) records.get('records');
 List<Object> persons = (List<Object>) records.get('records');
@@ -49,7 +50,24 @@ for( Object p : persons ) {
 }
  */
 
+/* 
 XDMPerson persons = XDMPerson.parse(jsonInput);
 for( XDMPerson.Person person : persons.records ) {
-    System.debug(person.MelissaPersonatorAddress);
+
+    Map<String, 
+//System.debug(person.MPA_FormattedAddress);
 }
+ */
+
+String JSONContent =
+    '{"isActive":true}';
+JSONParser parser = 
+   JSON.createParser(JSONContent);
+// Advance to the start object marker.
+parser.nextToken();
+// Advance to the next value.
+parser.nextValue();
+String fieldName = parser.getCurrentName();
+// Get the Boolean value.
+Boolean isActive = parser.getBooleanValue();
+System.debug( fieldName+'='+isActive);

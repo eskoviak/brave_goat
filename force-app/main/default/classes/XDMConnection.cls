@@ -34,8 +34,8 @@ global with sharing class XDMConnection
             columns.add(DataSource.Column.text('MiddleName'));
             columns.add(DataSource.Column.text('EnrichedPrimaryPhone'));
             columns.add(DataSource.Column.text('EnrichedPrimaryEmail'));
-            columns.add(DataSource.Column.text('MelissaFormattedAddress'));
-            columns.add(DataSource.Column.text('MelissaPostalCode'));
+            columns.add(DataSource.Column.text('MPA_FormattedAddress'));
+            columns.add(DataSource.Column.text('MPA_PostalCode'));
             tables.add(DataSource.Table.get('Person', 'FullPersonName', columns));
             return tables;
         }
@@ -76,6 +76,16 @@ global with sharing class XDMConnection
                         '/semarchy/api/rest/query/RWS_MDM_PRD/Person/GD/' + 
                         '?$f=PersonKey=' + (String)filter.columnValue);  // Map ExternalId -> PersonKey
                         if (response.getStatusCode() == 200) {
+                            XDMPerson persons = XDMPerson.parse(response.getBody());
+                            for(XDMPerson.Person person : persons) {
+                                Map<String, Object> row = new Map<String, Object>();
+                                for(DataSource.ColumnSelection item : table.columnsSelected) {
+                                    row.put(item.columnName, person.columnName);
+                                }
+                                rows.add(row);
+                            }
+
+/* 
                             Map<String, Object> m = (Map<String, Object>)JSON.deserializeUntyped(response.getBody());
                             Map<String, Object> row = new Map<String, Object>();
                             for(DataSource.ColumnSelection item : table.columnsSelected){
@@ -83,6 +93,8 @@ global with sharing class XDMConnection
                             }
                             row.put('ExternalId', personKey);  // Map PersonKey -> ExteranlId.  Prevents Null ExteranlId.
                             rows.add(row);
+
+ */                            
                         } else {
                             // TODO Handle other cases (400, 500)
                         }

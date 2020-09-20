@@ -11,15 +11,16 @@ public with sharing class XDMPerson {
         public Object MiddleName;
         public String EnrichedPrimaryPhone;
         public String EnrichedPrimaryEmail;
-        public MelissaPersonatorAddress MelissaPersonatorAddress;
+        public String MPA_PostalCode;
+        public String MPA_FormattedAddress;
     }
 
-    public class MelissaPersonatorAddress {
-        public String PostalCode;
-        public String FormattedAddress;
-    }
-    
     public static XDMPerson parse(String json) {
+        /** 
+         * Ed Hack:
+         * Replace 'MelissaPersonatorAddress.' with 'MPA_' 
+         */
+        json = json.replaceAll('MelissaPersonatorAddress.', 'MPA_');
         return (XDMPerson) System.JSON.deserialize(json, XDMPerson.class);
     }
 }
