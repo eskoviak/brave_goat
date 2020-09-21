@@ -67,40 +67,63 @@ global with sharing class XDMConnection
             DataSource.TableSelection table = context.tableSelection;
             DataSource.Filter filter = table.filter;
             List<Map<String,Object>> rows = new List<Map<String,Object>>();
+            Map<String, Object> row = new Map<String, Object>();
 
             // Handle Person Table -- FROM Person__x
             if(table.tableSelected == 'Person') {
                 // Handle Query by ExternalId (PersonKey) -- WHERE ExternalId = <>
                 if ( filter.columnName == 'ExternalId') {
-                    HttpResponse response = getXDMData(this.APIMUrl + 
-                        '/semarchy/api/rest/query/RWS_MDM_PRD/Person/GD/' + 
-                        '?$f=PersonKey=' + (String)filter.columnValue);  // Map ExternalId -> PersonKey
-                        if (response.getStatusCode() == 200) {
-                            XDMPerson persons = XDMPerson.parse(response.getBody());
-                            for(XDMPerson.Person person : persons) {
-                                Map<String, Object> row = new Map<String, Object>();
-                                for(DataSource.ColumnSelection item : table.columnsSelected) {
-                                    row.put(item.columnName, person.columnName);
-                                }
-                                rows.add(row);
-                            }
-
 /* 
-                            Map<String, Object> m = (Map<String, Object>)JSON.deserializeUntyped(response.getBody());
-                            Map<String, Object> row = new Map<String, Object>();
-                            for(DataSource.ColumnSelection item : table.columnsSelected){
-                                row.put(item.columnName, m.get(item.columnName));
-                            }
-                            row.put('ExternalId', personKey);  // Map PersonKey -> ExteranlId.  Prevents Null ExteranlId.
-                            rows.add(row);
+                    List<String> personKeys = new List<String>();
+                    personKeys.add( (String)filter.columnValue);
+                    List<Map<String, Object>> records = getPersons(personKeys);
+                    for(Map<string, Object> record : records) {
+                        row.clear();
+                        for(DataSource.ColumnSelection column : table.columnsSelected) {
+                            row.put(column.columnName, record.get(column.columnName));
+                        }
+                        // Make sure the ExternalId is set explicitly
+                        row.put('ExternalId', record.get('PersonKey'));
+                        rows.add(row.clone());
+                    }   
 
- */                            
+ */                  
+                    HttpResponse response = getXDMData('/semarchy/api/rest/query/RWS_MDM_PRD/Person/GD/' + 
+                        '?$f=PersonKey IN ' + (String)filter.columnValue);
+//                        '?$f=PersonKey=' + (String)filter.columnValue);  // Map ExternalId -> PersonKey
+                        if (response.getStatusCode() == 200) {
+                            List<Map<String, Object>> records = XDMPerson.parse(response.getBody());
+                            for(Map<string, Object> record : records) {
+                                row.clear();
+                                for(DataSource.ColumnSelection column : table.columnsSelected) {
+                                    row.put(column.columnName, record.get(column.columnName));
+                                }
+                                // Make sure the ExternalId is set explicitly
+                                row.put('ExternalId', record.get('PersonKey'));
+                                rows.add(row.clone());
+                            }   
                         } else {
                             // TODO Handle other cases (400, 500)
                         }
+
+        
                 }
             }
             return rows;
+        }
+
+        /**
+         * Helper function to get persons -- this is a common function
+         */
+        private List<Map<String, Object>> getPersons(List<String> personKeys) {
+            String filterString = '?$f=PersonKey IN (' + personKeys.toString() + ')';
+            HttpResponse response = getXDMData('/semarchy/api/rest/query/RWS_MDM_PRD/Person/GD/' + '?$f=PersonKey IN (163964654)');
+            if(response.getStatusCode() == 200) {
+                return XDMPerson.parse(response.getBody());
+            } else {
+                // TODO Handle other cases (400, 500)
+                return null;
+            }
         }
 
         /**
@@ -129,7 +152,8 @@ global with sharing class XDMConnection
                         when 1 {
                             /**
                              Test for phone number.  If true, then use name-query GetConsumersByPhone as this
-                             requires a join at semarchy and this is the fastest way to do that
+                             requires a join at semarchy and this is the fastest way to do that.  This uses a named-query
+                             as the person object is 
                             */
                             if (this.phonePattern.matcher(searchTokens[0]).matches()) {
                                 HttpResponse response = getXDMData('/semarchy/api/rest/named-query/RWS_MDM_PRD/GetConsumersByPhone/GD/?PhoneNumber=' +
