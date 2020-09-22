@@ -1,6 +1,6 @@
 public with sharing class XDMPerson {
     public XDMPerson() {}
-
+/* 
     public List<Person> records;
         
     public class Person {
@@ -15,14 +15,15 @@ public with sharing class XDMPerson {
         public String MPA_FormattedAddress;
     }
 
+ */
     public static List<Map<String, Object>> parse(String inputJson) {
-        // Apply Xnomis convention to remote the dotted property names in the returned
+        // Apply Xnomis convention to remove the dotted property names in the returned
         // JSON and create the parser
         inputJson = inputJson.replace('MelissaPersonatorAddress.', 'MPA_');
         inputJson = inputJson.replace('InputAddress.', 'IA_');
         JSONParser parser =  JSON.createParser(inputJson);
 
-        // Set up local local storage
+        // Set up local storage
         List<Map<String, Object>>  records = new List<Map<String, Object>>();
         Map<String,Object> record = new Map<String, Object>();
         system.JSONToken token;

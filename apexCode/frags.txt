@@ -105,3 +105,44 @@ override global DataSource.TableResult query(DataSource.QueryContext context) {
                 return DataSource.TableResult.get(true, null, context.tableSelection.tableSelected, getRows(context));
             }
         }
+
+
+        
+ /*                  
+                    HttpResponse response = getXDMData('/semarchy/api/rest/query/RWS_MDM_PRD/Person/GD/' + 
+                        '?$f=PersonKey%20IN%20(' + (String)filter.columnValue +')');
+//                        '?$f=PersonKey=' + (String)filter.columnValue);  // Map ExternalId -> PersonKey
+                        if (response.getStatusCode() == 200) {
+                            List<Map<String, Object>> records = XDMPerson.parse(response.getBody());
+                            for(Map<string, Object> record : records) {
+                                row.clear();
+                                for(DataSource.ColumnSelection column : table.columnsSelected) {
+                                    row.put(column.columnName, record.get(column.columnName));
+                                }
+                                // Make sure the ExternalId is set explicitly
+                                row.put('ExternalId', record.get('PersonKey'));
+                                rows.add(row.clone());
+                            }   
+                        } else {
+                            // TODO Handle other cases (400, 500)
+                        }
+*/
+
+
+                                /* 
+                                HttpResponse response = getXDMData('/semarchy/api/rest/named-query/RWS_MDM_PRD/GetConsumersByPhone/GD/?PhoneNumber=' +
+                                    searchTokens[0].replace('() .-', ''));
+                                if (response.getStatusCode() == 200) {
+                                    XDMPhoneResp phones = XDMPhoneResp.parse(response.getBody());
+                                    for(XDMPhoneResp.Records person : phones.records) {
+                                        Map<String, Object> row = new Map<String, Object>();
+                                        row.put('ExternalId', person.Person.PersonKey);
+                                        row.put('FirstName', person.Person.FirstName);
+                                        row.put('FullPersonName', person.Person.FullPersonName);
+                                        results.add(row);
+                                    }
+                                } else {
+                                    // Handle other Responses (404, etc.)
+                                }
+
+ */
