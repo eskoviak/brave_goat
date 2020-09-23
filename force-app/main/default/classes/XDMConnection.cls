@@ -209,6 +209,18 @@ global with sharing class XDMConnection
 
         }
 
+        ///// MOCKS
+        static String mockPersonPhoneResponse = '{' +
+            ' "records": [ ' +
+            '   {' +
+            '       "PersonPhoneKey": 888888888, ' +
+            '       "FID_PersonKey": 999999999' +
+            '   }, ' +
+            '   {' +
+            '       "PersonPhoneKey": 888888889, ' +
+            '       "FID_PersonKey": 999999998' +
+            '   }';
+
         /**
          * getTokens --  parses a phase into a List of tokens, preserving spaces in items that are quoted
          * @param phrase -- The string phrase to be tokenized
