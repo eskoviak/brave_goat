@@ -190,36 +190,68 @@ global with sharing class XDMConnection
          * defined above; the value is it's contents.
          */
         private List<Map<String, Object>> queryXdm(Entity e, View v, String filter) {
-            String xdmUri = ('/semarchy/api/rest/query/' + this.DataLocation + '/' +
-                e + '/' + v + '/?$f=' + filter).replace(' ', '%20');
-            Http http = new Http();
-            HttpRequest request = new HttpRequest();
-            request.setEndpoint(this.APIMUrl + xDMUri);
-            request.setMethod('GET');
-            request.setHeader('Ocp-Apim-Subscription-Key',this.SubcriptionKey);
-            HttpResponse response = http.send(request);
-            Integer status = response.getStatusCode();
-            // nothing to see here
-            if (status == 404) { return new List<Map<String, Object>>(); }
-            else if (status == 200) {
-                return parse(response.getBody());
+            if (System.Test.isRunningTest()) {
+                // return appropriate mock
+                if(e == Entity.Person) {
+                    return parse(mockPersonResponse);
+                } else if ( e == Entity.PersonPhone) {
+                    return parse(mockPersonPhoneResponse);
+                } else {
+                    throw new DataSource.DataSourceException('Unknown entity in queryXdm test: ' + e);
+                }
             } else {
-                throw new DataSource.DataSourceException('Error in queryXDM: ' + String.valueOf(status));
+                String xdmUri = ('/semarchy/api/rest/query/' + this.DataLocation + '/' +
+                    e + '/' + v + '/?$f=' + filter).replace(' ', '%20');
+                Http http = new Http();
+                HttpRequest request = new HttpRequest();
+                request.setEndpoint(this.APIMUrl + xDMUri);
+                request.setMethod('GET');
+                request.setHeader('Ocp-Apim-Subscription-Key',this.SubcriptionKey);
+                HttpResponse response = http.send(request);
+                Integer status = response.getStatusCode();
+                // nothing to see here
+                if (status == 404) { return new List<Map<String, Object>>(); }
+                else if (status == 200) {
+                    return parse(response.getBody());
+                } else {
+                    throw new DataSource.DataSourceException('Error in queryXDM: ' + String.valueOf(status));
+                }
             }
-
         }
 
         ///// MOCKS
+
+        /**
+         * These mocks only contain enough content to pass the tests
+         */
         static String mockPersonPhoneResponse = '{' +
             ' "records": [ ' +
             '   {' +
             '       "PersonPhoneKey": 888888888, ' +
-            '       "FID_PersonKey": 999999999' +
+            '       "PhoneNumber": "8885551212",' +
+            '       "FID_PersonKey": 17700326' +
             '   }, ' +
             '   {' +
             '       "PersonPhoneKey": 888888889, ' +
-            '       "FID_PersonKey": 999999998' +
-            '   }';
+            '       "PhoneNumber": "8885551213",' +
+            '       "FID_PersonKey": 18350909' +
+            '   }' +
+            ' ]' +
+            '}';
+
+        static String mockPersonResponse = '{' +
+        ' "records": [ ' +
+        '   {' +
+        '       "PersonKey": 17700326,' +
+        '       "FullPersonName": "Ludwig Von Beethoven"' +
+        '   },' +
+        '   {' +
+        '       "PersonKey": 18350909,' +
+        '       "FullPersonName": "Camille SaintSaens"' +
+        '   }' +
+        ' ]' +
+        '}';
+
 
         /**
          * getTokens --  parses a phase into a List of tokens, preserving spaces in items that are quoted
