@@ -13,6 +13,7 @@ global with sharing class XDMConnection
         private String APIMUrl;
         private String SubcriptionKey;
         private String DataLocation;
+        private String apiVersion;
         private Pattern phonePattern;
         private Pattern PostalCodePattern;
 
@@ -25,7 +26,10 @@ global with sharing class XDMConnection
         public XDMConnection(DataSource.ConnectionParams connectionParams) {
             this.APIMUrl = connectionParams.endpoint;
             this.SubcriptionKey = connectionParams.oauthToken;
-            this.DataLocation = connectionParams.repository;
+            // For Semarchy On AWS
+            this.DataLocation = 'RWS_MDM_PRD';
+            this.apiVersion = '1';
+
             this.phonePattern = Pattern.compile('^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$');
             this.PostalCodePattern = Pattern.compile('^[0-9]{5}(?:-[0-9]{4})?$');
         }
@@ -46,20 +50,37 @@ global with sharing class XDMConnection
              * column names are as they appear in the JSON response from the API call.  This
              * prevents needing to double map the data.</p>
              */
-            List<DataSource.Column> columns = new List<DataSource.Column>();
+            List<DataSource.Column> personColumns = new List<DataSource.Column>();
+            ///// Person Table
             // These are required, standard fields
-            columns.add(DataSource.Column.text('ExternalId', 255)); // will be mapped to PersonKey
-            columns.add(DataSource.Column.url('DisplayUrl'));
+            personColumns.add(DataSource.Column.text('ExternalId', 255)); // will be mapped to PersonKey
+            personColumns.add(DataSource.Column.url('DisplayUrl'));
             // JSON Response fields -- Note these are selected from the larger dataset which is returned.
-            columns.add(DataSource.Column.text('FullPersonName'));
-            columns.add(DataSource.Column.text('FirstName'));
-            columns.add(DataSource.Column.text('LastName'));
-            columns.add(DataSource.Column.text('MiddleName'));
-            columns.add(DataSource.Column.text('EnrichedPrimaryPhone'));
-            columns.add(DataSource.Column.text('EnrichedPrimaryEmail'));
-            columns.add(DataSource.Column.text('MPA_FormattedAddress'));
-            columns.add(DataSource.Column.text('MPA_PostalCode'));
-            tables.add(DataSource.Table.get('Person', 'FullPersonName', columns));
+            personColumns.add(DataSource.Column.text('FullPersonName'));
+            personColumns.add(DataSource.Column.text('FirstName'));
+            personColumns.add(DataSource.Column.text('LastName'));
+            personColumns.add(DataSource.Column.text('MiddleName'));
+            personColumns.add(DataSource.Column.text('EnrichedPrimaryPhone'));
+            personColumns.add(DataSource.Column.text('EnrichedPrimaryEmail'));
+            personColumns.add(DataSource.Column.text('MPA_FormattedAddress'));
+            personColumns.add(DataSource.Column.text('MPA_PostalCode'));
+            personColumns.add(DataSource.Column.indirectLookup('Contact', 'Contact', 'Person_Key__c'));
+            tables.add(DataSource.Table.get('Person', 'FullPersonName', personColumns));
+
+            ///// PersonSales Table
+            List<DataSource.Column> personSalesColumns = new List<DataSource.Column>();
+            // These are required, standard fields
+            personSalesColumns.add(DataSource.Column.text('ExternalId', 255)); // will be mapped to CustomerID
+            personSalesColumns.add(DataSource.Column.url('DisplayUrl'));
+            // JSON Response fields -- Note these are selected from the larger dataset which is returned.
+            personSalesColumns.add(DataSource.Column.text('xactDate'));
+            personSalesColumns.add(DataSource.Column.integer('storeNumber', 6));
+            personSalesColumns.add(DataSource.Column.text('style'));
+            personSalesColumns.add(DataSource.Column.text('item'));
+            personSalesColumns.add(DataSource.Column.number('netSalesAmt', 18, 3));
+            tables.add(DataSource.Table.get('PersonSales', 'xactDate', personSalesColumns));
+
+
             return tables;
         }
 
@@ -99,6 +120,40 @@ global with sharing class XDMConnection
                             }
                             // Make sure the ExternalId is set explicitly
                             row.put('ExternalId', record.get('PersonKey'));
+                            row.put('Contact', record.get('PersonKey'));
+                            rows.add(row.clone());
+                        }
+                    }
+                }
+            } else if (table.tableSelected == 'PersonSales') {
+                // Handle Query by ExternalID (PersonKey) -- WHERE ExternalId = <>
+                if (filter.columnName == 'ExternalId') {
+                    String filterString = 'Gold_PersonKey IN (' + (String)filter.columnValue + ')';
+                    List<Map<String, Object>> records = queryXdm(Entity.Person, View.MD, filterString);
+                    if (! records.isEmpty()) {
+
+                        // Get the data from the sales hub API
+                        List<Map<String, Object>> sales = new List<Map<String, Object>>();
+                        for (Map<String, Object> record : records ) {
+                            String sourceId;
+                            if (record.get('PublisherID') == 'XCENTER') {
+                                // fix mangled XCENTER Ids
+                                sourceId = 'C' + ((String)record.get('SourceID')).replace('_1', '').leftPad(14, '0');
+                            } else {
+                                // Assume the other keys aren't mangled
+                                sourceId = (String)record.get('SourceID');
+                            }
+                            sales.addAll(querySalesHub((String)record.get('PublisherID'), sourceId));
+                        }
+
+                        // populate the dataset
+                        for(Map<String, Object> sale : sales) {
+                            row.clear();
+                            for(DataSource.ColumnSelection column : table.columnsSelected) {
+                                row.put(column.columnName, sale.get(column.columnName));
+                            }
+                            // Make sure the ExternalId is set explicitly
+                            row.put('ExternalId', (String)filter.columnValue);
                             rows.add(row.clone());
                         }
                     }
@@ -133,6 +188,7 @@ global with sharing class XDMConnection
                     List<Map<String,Object>> persons = new List<Map<String,Object>>();
                     switch on searchTokens.size() {
                         when 1 {
+                            // is it a phone number?
                             if (this.phonePattern.matcher(searchTokens[0]).matches()) {
                                 String filterString = 'PhoneNumber=\'' + searchTokens[0] + '\'';
                                 List<Map<String, Object>> records = queryXdm(Entity.PersonPhone, View.GD, filterString);                            
@@ -146,7 +202,7 @@ global with sharing class XDMConnection
                         when 2 { }
                         when 3 {
                             /**
-                             * Assume that the first two are 'FirstName' and 'LastName'.  The third can either be the two letter state abbreviation ( match MPA_State)
+                             * Assume that the first two token are 'FirstName' and 'LastName'.  The third can either be the two letter state abbreviation ( match MPA_State)
                              * or a 5 or 5+4 Postal code (MPA_PostalCode)
                              */
                             String filterString = 'FirstName=\''+searchTokens[0].trim() + '\' AND ';
@@ -181,6 +237,8 @@ global with sharing class XDMConnection
 
         ///// UTILS
 
+
+
         /**
          * Function to query xDM
          * @param entity -- the Entity to query of the enum Entity
@@ -200,13 +258,14 @@ global with sharing class XDMConnection
                     throw new DataSource.DataSourceException('Unknown entity in queryXdm test: ' + e);
                 }
             } else {
-                String xdmUri = ('/semarchy/api/rest/query/' + this.DataLocation + '/' +
+                String xdmUri = ('/semarchy/query/' + this.DataLocation + '/' +
                     e + '/' + v + '/?$f=' + filter).replace(' ', '%20');
                 Http http = new Http();
                 HttpRequest request = new HttpRequest();
                 request.setEndpoint(this.APIMUrl + xDMUri);
                 request.setMethod('GET');
                 request.setHeader('Ocp-Apim-Subscription-Key',this.SubcriptionKey);
+                request.setHeader('x-api-version', this.apiVersion);
                 HttpResponse response = http.send(request);
                 Integer status = response.getStatusCode();
                 // nothing to see here
@@ -215,6 +274,31 @@ global with sharing class XDMConnection
                     return parse(response.getBody());
                 } else {
                     throw new DataSource.DataSourceException('Error in queryXDM: ' + String.valueOf(status));
+                }
+            }
+        }
+
+        /**
+         * Function to query Sales Hub
+         */
+        private List<Map<String, Object>> querySalesHub(String source, String sourceId) {
+            if (System.Test.isRunningTest()) {
+                return parse(mockSalesResponse);
+            } else {
+                Http http = new Http();
+                HttpRequest request = new HttpRequest();
+                request.setEndpoint(APIMUrl + '/consumerDetail/source/' + source + '/consumer/' + sourceId);
+                request.setMethod('GET');
+                request.setHeader('Ocp-Apim-Subscription-Key',this.SubcriptionKey);
+                request.setHeader('x-api-version', this.apiVersion);
+                HttpResponse response = http.send(request);
+                Integer status = response.getStatusCode();
+                // nothing to see here
+                if (status == 404) { return new List<Map<String, Object>>(); }
+                else if (status == 200) {
+                    return parse(response.getBody());
+                } else {
+                    throw new DataSource.DataSourceException('Error in querySaleHub: ' + String.valueOf(status));
                 }
             }
         }
@@ -233,7 +317,7 @@ global with sharing class XDMConnection
             '   }, ' +
             '   {' +
             '       "PersonPhoneKey": 888888889, ' +
-            '       "PhoneNumber": "8885551213",' +
+            '       "PhoneNumber": "8885551212",' +
             '       "FID_PersonKey": 18350909' +
             '   }' +
             ' ]' +
@@ -248,6 +332,18 @@ global with sharing class XDMConnection
         '   {' +
         '       "PersonKey": 18350909,' +
         '       "FullPersonName": "Camille SaintSaens"' +
+        '   }' +
+        ' ]' +
+        '}';
+
+        static String mockSalesResponse = '{' +
+        ' "records": [ ' +
+        '   {' +
+        '       "xactDate": "08/05/2018",' +
+        '       "storeNumber": 136,' +
+        '       "style": "21684",' +
+        '       "item": "00605D 100",' +
+        '       "netSalesAmount": 128.99' +
         '   }' +
         ' ]' +
         '}';
