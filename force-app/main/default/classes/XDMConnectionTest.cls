@@ -64,7 +64,8 @@ public with sharing class XDMConnectionTest {
         context.tableSelection.filter.columnName = 'ExternalId';
         context.tableSelection.filter.columnValue = '17700326';  // Herr Beethoven
         DataSource.TableResult results = connection.query(context);
-        System.assertEquals(1, results.rows.size());
+        System.assertEquals(2, results.rows.size());
+
     }
 
     @isTest static void testSearch() {
