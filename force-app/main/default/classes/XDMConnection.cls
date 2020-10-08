@@ -16,6 +16,7 @@ global with sharing class XDMConnection
         private String apiVersion;
         private Pattern phonePattern;
         private Pattern PostalCodePattern;
+        private Pattern ODOrderNumPattern;
 
         /**
          * Internal Enums
@@ -32,6 +33,7 @@ global with sharing class XDMConnection
 
             this.phonePattern = Pattern.compile('^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$');
             this.PostalCodePattern = Pattern.compile('^[0-9]{5}(?:-[0-9]{4})?$');
+            this.ODOrderNumPattern = Pattern.compile('^[a-z][A-Z]');
         }
 
         ///// SYNC
@@ -77,9 +79,10 @@ global with sharing class XDMConnection
             personSalesColumns.add(DataSource.Column.integer('storeNumber', 6));
             personSalesColumns.add(DataSource.Column.text('style'));
             personSalesColumns.add(DataSource.Column.text('item'));
-            personSalesColumns.add(DataSource.Column.number('netSalesAmt', 18, 3));
+            personSalesColumns.add(DataSource.Column.number('netSalesAmount', 18, 3));
             tables.add(DataSource.Table.get('PersonSales', 'xactDate', personSalesColumns));
 
+            //// OrderDynamics
 
             return tables;
         }
@@ -197,6 +200,8 @@ global with sharing class XDMConnection
                                     FID_Persons.add(String.valueOf(record.get('FID_Person')));
                                 }
                                 persons = queryXdm(Entity.Person, View.GD, 'PersonKey IN ' + String.valueOf(FID_Persons));
+//                            } else if (searchTokens[0]) {
+//
                             }
                         }
                         when 2 { }

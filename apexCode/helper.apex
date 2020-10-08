@@ -18,12 +18,12 @@ System.debug(input);
 System.debug(output);
 
 
-List<PersonSales__x> sales = [SELECT ExternalId, xactDate__c, item__c FROM PersonSales__x WHERE ExternalID = '170587144' ];
+List<PersonSales__x> sales = [SELECT ExternalId, xactDate__c, item__c FROM PersonSales__x WHERE ExternalID = '169843853' ];
 System.debug(sales);
-
  */
 
-List<Map<String, String>> records = new List<Map<String, String>>();
+
+/* List<Map<String, String>> records = new List<Map<String, String>>();
 Map<String, String> key = new Map<String, String>();
 key.put('PublisherID', 'XCENTER');
 key.put('SourceID', 'C'+ ('80136008565663_1').replace('_1', '').leftPad(14, '0') );
@@ -35,4 +35,7 @@ records.add(key.clone());
 Map<String, Object> wrapper = new Map<String, Object>();
 wrapper.put('records', records);
 String strJson = JSON.serialize(wrapper);
-System.debug(strJson);
+System.debug(strJson); */
+
+
+
