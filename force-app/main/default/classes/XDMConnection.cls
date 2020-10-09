@@ -66,7 +66,7 @@ global with sharing class XDMConnection
             personColumns.add(DataSource.Column.text('EnrichedPrimaryEmail'));
             personColumns.add(DataSource.Column.text('MPA_FormattedAddress'));
             personColumns.add(DataSource.Column.text('MPA_PostalCode'));
-            personColumns.add(DataSource.Column.indirectLookup('Contact', 'Contact', 'Person_Key__c'));
+            personColumns.add(DataSource.Column.lookup('Contact', 'Contact'));
             tables.add(DataSource.Table.get('Person', 'FullPersonName', personColumns));
 
             ///// PersonSales Table
@@ -123,7 +123,18 @@ global with sharing class XDMConnection
                             }
                             // Make sure the ExternalId is set explicitly
                             row.put('ExternalId', record.get('PersonKey'));
-                            row.put('Contact', record.get('PersonKey'));
+
+                            // We have to go through a few hoops, to get the Contact (parent) ID.  If populated, it will be on the 
+                            // MD record, with the Gold_PersonKey matching this ExternalID, and the SourceSystem = 'SALESFORCE'
+                            filterString = 'Gold_PersonKey=\'' + record.get('PersonKey') + '\'+AND+SourceSystem=\'SALESFORCE\'';
+                            List<Map<String, Object>> tmp = queryXDM(Entity.Person, View.MD, filterString);
+                            if(tmp.size() == 0) {
+                                row.put('Contact', '');
+                            } else if (tmp.size() == 1) {
+                                row.put('Contact', tmp[0].get('SourceID'));
+                            } else {
+                                throw new DataSource.DataSourceException('Error in queryRows::Get Data from MD : more than one row returned from MD for Gold_PersonKey/Source System');
+                            }
                             rows.add(row.clone());
                         }
                     }
