@@ -1,0 +1,17 @@
+<apex:page controller="ContactCreateController" tabStyle="Contact">
+    <apex:form>
+        <apex:pageBlock title="Confirm Contact Create">
+            <p>Please review the information below.  After verifying or correcting the information, press Submit or Cancel</p>
+            <apex:pageBlockSection title="Person fields">
+                <apex:inputText value="{!person.FirstName__c}" />
+                <apex:inputText value="{!person.LastName__c}" />
+                <apex:inputText value="{!person.MiddleName__c}" />
+                <apex:inputText value="{!person.EnrichedPrimaryPhone__c}"  />
+                <apex:inputText value="{!person.EnrichedPrimaryEmail__c}" />
+                <apex:inputText value="{!person.MPA_FormattedAddress__c}" />
+                <apex:commandButton action="{!submit}" value="Submit" id="id-submit-button" />
+                <apex:commandButton action="{!cancel}" value="cancel" id="id-cacel-button" />
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

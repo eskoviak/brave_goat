@@ -66,6 +66,7 @@ global with sharing class XDMConnection
             personColumns.add(DataSource.Column.text('EnrichedPrimaryEmail'));
             personColumns.add(DataSource.Column.text('MPA_FormattedAddress'));
             personColumns.add(DataSource.Column.text('MPA_PostalCode'));
+            //can remove this ? -- in fact person should be a parent of contact, not child
             personColumns.add(DataSource.Column.lookup('Contact', 'Contact'));
             tables.add(DataSource.Table.get('Person', 'FullPersonName', personColumns));
 
@@ -124,7 +125,7 @@ global with sharing class XDMConnection
                             // Make sure the ExternalId is set explicitly
                             row.put('ExternalId', record.get('PersonKey'));
 
-                            // We have to go through a few hoops, to get the Contact (parent) ID.  If populated, it will be on the 
+                            // We have to go through a few hoops, to get the Contact (child) ID.  If populated, it will be on the 
                             // MD record, with the Gold_PersonKey matching this ExternalID, and the SourceSystem = 'SALESFORCE'
                             filterString = 'Gold_PersonKey=\'' + record.get('PersonKey') + '\'+AND+SourceSystem=\'SALESFORCE\'';
                             List<Map<String, Object>> tmp = queryXDM(Entity.Person, View.MD, filterString);
@@ -208,7 +209,9 @@ global with sharing class XDMConnection
                                 List<Map<String, Object>> records = queryXdm(Entity.PersonPhone, View.GD, filterString);                            
                                 List<String> FID_Persons = new List<String>();
                                 for( Map<String, Object> record : records) {
-                                    FID_Persons.add(String.valueOf(record.get('FID_Person')));
+                                    if(record.get('FID_Person') != '' ) {
+                                        FID_Persons.add(String.valueOf(record.get('FID_Person')));
+                                    }
                                 }
                                 persons = queryXdm(Entity.Person, View.GD, 'PersonKey IN ' + String.valueOf(FID_Persons));
 //                            } else if (searchTokens[0]) {

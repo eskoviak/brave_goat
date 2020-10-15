@@ -1,0 +1,9 @@
+<apex:page controller="MyFirstController">
+<!-- Begin Default Content REMOVE THIS -->
+<h1>Congratulations</h1>
+This is your new Page for the {!name}.
+
+FirstName: {!person.FirstName__c}
+
+<!-- End Default Content REMOVE THIS -->
+</apex:page>
