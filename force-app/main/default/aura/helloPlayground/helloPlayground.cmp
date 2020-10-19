@@ -20,4 +20,4 @@
         <p><c:helloMessage message="{!v.messages[1]}"/></p>
         </aura:set>
     </aura:if>   
-</aura:component>	
+</aura:component>

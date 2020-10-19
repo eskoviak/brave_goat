@@ -11,4 +11,4 @@
             name="packed"
             checked="{!v.item.Packed__c}"/>
     </p>
-</aura:component>	
+</aura:component>
