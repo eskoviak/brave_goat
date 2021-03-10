@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConnectedApp xmlns="http://soap.sforce.com/2006/04/metadata">
+    <contactEmail>eskoviak@eskoviak.net</contactEmail>
+    <label>Postman Client</label>
+    <oauthConfig>
+        <callbackUrl>https://llocalhost/callback</callbackUrl>
+        <consumerKey>3MVG9KsVczVNcM8zNUmg6SI1wfCu5wcIb.yP3b8nMrS.5pcpMV2eSr2iup4DPf5bIAUy2mGBdI93sWoeVIaJt</consumerKey>
+        <isAdminApproved>false</isAdminApproved>
+        <scopes>Api</scopes>
+    </oauthConfig>
+</ConnectedApp>

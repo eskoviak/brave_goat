@@ -5,22 +5,17 @@ public with sharing class XDMPhoneResp {
         
     public class Person {
         public Integer PersonKey;
-        public String FullPersonName;
         public String FirstName;
         public String LastName;
         public Object MiddleName;
-        public String EnrichedPrimaryPhone;
+        public String PostalCode;
         public String EnrichedPrimaryEmail;
-        public MelissaPersonatorAddress MelissaAddress;
+        public String EnrichedPrimaryPhone;
+        public String FullPersonName;
     }
 
     public class Records {
         public Person Person;
-    }
-
-    public class MelissaPersonatorAddress {
-        public String PostalCode;
-        public String FormattedAddress;
     }
 
     
