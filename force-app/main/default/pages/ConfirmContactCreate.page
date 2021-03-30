@@ -11,7 +11,7 @@
         }
     </script>    
 
-    <apex:form >
+    <apex:form>
 <!--    <apex:pageBlock title="Confirm Contact Create">
             <p>Please review the information below.  After verifying or correcting the information, press Submit or Cancel</p>
 
