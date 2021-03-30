@@ -512,4 +512,3 @@ global with sharing class XDMConnection
             return records;
         }
 }
-

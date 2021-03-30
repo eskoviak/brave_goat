@@ -23,4 +23,3 @@ global with sharing class XDMProvider
         return new XDMConnection(connectionParams);
     }
 }
-

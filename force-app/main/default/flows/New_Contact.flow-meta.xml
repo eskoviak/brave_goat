@@ -1,10 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionCalls>
+        <name>postToChatter</name>
+        <label>postToChatter</label>
+        <locationX>223</locationX>
+        <locationY>428</locationY>
+        <actionName>chatterPost</actionName>
+        <actionType>chatterPost</actionType>
+        <connector>
+            <targetReference>Confirm</targetReference>
+        </connector>
+        <inputParameters>
+            <name>text</name>
+            <value>
+                <elementReference>chatterPostTemplate</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>subjectNameOrId</name>
+            <value>
+                <elementReference>contact.Id</elementReference>
+            </value>
+        </inputParameters>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </actionCalls>
     <assignments>
         <name>Set_Contact_ID</name>
         <label>Set Contact ID</label>
-        <locationX>186</locationX>
-        <locationY>442</locationY>
+        <locationX>579</locationX>
+        <locationY>399</locationY>
         <assignmentItems>
             <assignToReference>contact.Id</assignToReference>
             <operator>Assign</operator>
@@ -19,8 +43,8 @@
     <decisions>
         <name>Update_or_Create</name>
         <label>Update or Create?</label>
-        <locationX>378</locationX>
-        <locationY>227</locationY>
+        <locationX>449</locationX>
+        <locationY>246</locationY>
         <defaultConnector>
             <targetReference>Create_Contact</targetReference>
         </defaultConnector>
@@ -28,13 +52,6 @@
         <rules>
             <name>Update_Existing</name>
             <conditionLogic>and</conditionLogic>
-            <conditions>
-                <leftValueReference>update_toggle.value</leftValueReference>
-                <operator>EqualTo</operator>
-                <rightValue>
-                    <booleanValue>true</booleanValue>
-                </rightValue>
-            </conditions>
             <conditions>
                 <leftValueReference>Find_a_Match</leftValueReference>
                 <operator>IsNull</operator>
@@ -48,6 +65,31 @@
             <label>Update Existing</label>
         </rules>
     </decisions>
+    <decisions>
+        <name>Update_Yes</name>
+        <label>Update if Existing?</label>
+        <locationX>323</locationX>
+        <locationY>47</locationY>
+        <defaultConnector>
+            <targetReference>Create_Contact</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>No</defaultConnectorLabel>
+        <rules>
+            <name>Yes</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>update_toggle.value</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Find_a_Match</targetReference>
+            </connector>
+            <label>Yes</label>
+        </rules>
+    </decisions>
     <dynamicChoiceSets>
         <name>accounts</name>
         <dataType>String</dataType>
@@ -59,6 +101,11 @@
         </outputAssignments>
         <valueField>Id</valueField>
     </dynamicChoiceSets>
+    <formulas>
+        <name>created_or_updated</name>
+        <dataType>String</dataType>
+        <expression>IF( {!Create_Contact}, &quot;created&quot;, &quot;updated&quot;)</expression>
+    </formulas>
     <interviewLabel>New Contact {!$Flow.CurrentDateTime}</interviewLabel>
     <label>New Contact</label>
     <processMetadataValues>
@@ -77,15 +124,18 @@
     <recordCreates>
         <name>Create_Contact</name>
         <label>Create Contact</label>
-        <locationX>551</locationX>
-        <locationY>462</locationY>
+        <locationX>229</locationX>
+        <locationY>242</locationY>
+        <connector>
+            <targetReference>postToChatter</targetReference>
+        </connector>
         <inputReference>contact</inputReference>
     </recordCreates>
     <recordLookups>
         <name>Find_a_Match</name>
         <label>Find a Match</label>
-        <locationX>388</locationX>
-        <locationY>36</locationY>
+        <locationX>455</locationX>
+        <locationY>47</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
             <targetReference>Update_or_Create</targetReference>
@@ -111,10 +161,29 @@
     <recordUpdates>
         <name>Update_Contact</name>
         <label>Update Contact</label>
-        <locationX>190</locationX>
-        <locationY>613</locationY>
+        <locationX>430</locationX>
+        <locationY>463</locationY>
+        <connector>
+            <targetReference>postToChatter</targetReference>
+        </connector>
         <inputReference>contact</inputReference>
     </recordUpdates>
+    <screens>
+        <name>Confirm</name>
+        <label>Confirm</label>
+        <locationX>200</locationX>
+        <locationY>590</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>true</allowPause>
+        <fields>
+            <name>confirmation_message</name>
+            <fieldText>&lt;p&gt;Thanks!  &lt;a href=&quot;/{!contact.Id}&quot; target=&quot;_blank&quot;&gt;The contact&lt;/a&gt; was {!created_or_updated}.&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
     <screens>
         <name>Contact_Info</name>
         <label>Contact Info</label>
@@ -124,7 +193,7 @@
         <allowFinish>true</allowFinish>
         <allowPause>true</allowPause>
         <connector>
-            <targetReference>Find_a_Match</targetReference>
+            <targetReference>Update_Yes</targetReference>
         </connector>
         <fields>
             <name>contactName</name>
@@ -183,7 +252,15 @@
             <targetReference>Contact_Info</targetReference>
         </connector>
     </start>
-    <status>Draft</status>
+    <status>Active</status>
+    <textTemplates>
+        <name>chatterPostTempate</name>
+        <text>&lt;p&gt;Contact was {!created_or_updated}.&lt;/p&gt;</text>
+    </textTemplates>
+    <textTemplates>
+        <name>chatterPostTemplate</name>
+        <text>&lt;p&gt;The contact was {!created_or_updated}.&lt;/p&gt;</text>
+    </textTemplates>
     <variables>
         <name>contact</name>
         <dataType>SObject</dataType>

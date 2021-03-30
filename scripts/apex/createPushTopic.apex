@@ -1,0 +1,10 @@
+PushTopic pushTopic = new PushTopic();
+pushTopic.Name = 'CaseUpdate';
+pushTopic.Query = 'SELECT Id, CaseNumber, OwnerID, Status FROM Case';
+pushTopic.ApiVersion = 46.0;
+pushTopic.NotifyForOperationCreate = true;
+pushTopic.NotifyForOperationUpdate = true;
+pushTopic.NotifyForOperationUndelete = true;
+pushTopic.NotifyForOperationDelete = true;
+pushTopic.NotifyForFields = 'Referenced';
+insert pushTopic;
