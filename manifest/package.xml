@@ -154,7 +154,7 @@
 	</types>
     <types>
         <members>*</members>
-        <name>Flow</name>
+        <name>Flows</name>
     </types>
     <version>48.0</version>
 </Package>
