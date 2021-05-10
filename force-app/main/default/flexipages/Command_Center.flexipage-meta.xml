@@ -5,22 +5,30 @@
         <type>Region</type>
     </flexiPageRegions>
     <flexiPageRegions>
-        <componentInstances>
-            <componentName>PropertyListDaysOnMarketChart</componentName>
-        </componentInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentName>PropertyListDaysOnMarketChart</componentName>
+            </componentInstance>
+        </itemInstances>
         <name>region2</name>
         <type>Region</type>
     </flexiPageRegions>
     <flexiPageRegions>
-        <componentInstances>
-            <componentName>PropertySummary</componentName>
-        </componentInstances>
-        <componentInstances>
-            <componentName>SmartPriceCalculator</componentName>
-        </componentInstances>
-        <componentInstances>
-            <componentName>DaysOnMarketEstimator</componentName>
-        </componentInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentName>PropertySummary</componentName>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentName>SmartPriceCalculator</componentName>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentName>DaysOnMarketEstimator</componentName>
+            </componentInstance>
+        </itemInstances>
         <name>region3</name>
         <type>Region</type>
     </flexiPageRegions>

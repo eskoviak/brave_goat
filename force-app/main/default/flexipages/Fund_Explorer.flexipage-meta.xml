@@ -5,85 +5,95 @@
         <type>Region</type>
     </flexiPageRegions>
     <flexiPageRegions>
-        <componentInstances>
-            <componentName>FundTileList</componentName>
-        </componentInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentName>FundTileList</componentName>
+            </componentInstance>
+        </itemInstances>
         <name>region2</name>
         <type>Region</type>
     </flexiPageRegions>
     <flexiPageRegions>
-        <componentInstances>
-            <componentName>FundFilter</componentName>
-        </componentInstances>
-        <componentInstances>
-            <componentInstanceProperties>
-                <name>filterName</name>
-                <value>ytd-return</value>
-            </componentInstanceProperties>
-            <componentInstanceProperties>
-                <name>label</name>
-                <value>ytd return</value>
-            </componentInstanceProperties>
-            <componentInstanceProperties>
-                <name>max</name>
-                <value>30</value>
-            </componentInstanceProperties>
-            <componentInstanceProperties>
-                <name>min</name>
-                <value>-30</value>
-            </componentInstanceProperties>
-            <componentInstanceProperties>
-                <name>step</name>
-                <value>1</value>
-            </componentInstanceProperties>
-            <componentName>PercentReturnRange</componentName>
-        </componentInstances>
-        <componentInstances>
-            <componentInstanceProperties>
-                <name>filterName</name>
-                <value>1-year-return</value>
-            </componentInstanceProperties>
-            <componentInstanceProperties>
-                <name>label</name>
-                <value>1-year return</value>
-            </componentInstanceProperties>
-            <componentInstanceProperties>
-                <name>max</name>
-                <value>30</value>
-            </componentInstanceProperties>
-            <componentInstanceProperties>
-                <name>min</name>
-                <value>-30</value>
-            </componentInstanceProperties>
-            <componentInstanceProperties>
-                <name>step</name>
-                <value>1</value>
-            </componentInstanceProperties>
-            <componentName>PercentReturnRange</componentName>
-        </componentInstances>
-        <componentInstances>
-            <componentInstanceProperties>
-                <name>filterName</name>
-                <value>5-year-return</value>
-            </componentInstanceProperties>
-            <componentInstanceProperties>
-                <name>label</name>
-                <value>5-year return</value>
-            </componentInstanceProperties>
-            <componentInstanceProperties>
-                <name>max</name>
-                <value>30</value>
-            </componentInstanceProperties>
-            <componentInstanceProperties>
-                <name>min</name>
-                <value>-30</value>
-            </componentInstanceProperties>
-            <componentInstanceProperties>
-                <name>step</name>
-                <value>1</value>
-            </componentInstanceProperties>
-            <componentName>PercentReturnRange</componentName>
-        </componentInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentName>FundFilter</componentName>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>filterName</name>
+                    <value>ytd-return</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>label</name>
+                    <value>ytd return</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>max</name>
+                    <value>30</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>min</name>
+                    <value>-30</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>step</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>PercentReturnRange</componentName>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>filterName</name>
+                    <value>1-year-return</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>label</name>
+                    <value>1-year return</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>max</name>
+                    <value>30</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>min</name>
+                    <value>-30</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>step</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>PercentReturnRange</componentName>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>filterName</name>
+                    <value>5-year-return</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>label</name>
+                    <value>5-year return</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>max</name>
+                    <value>30</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>min</name>
+                    <value>-30</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>step</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>PercentReturnRange</componentName>
+            </componentInstance>
+        </itemInstances>
         <name>region3</name>
         <type>Region</type>
     </flexiPageRegions>
