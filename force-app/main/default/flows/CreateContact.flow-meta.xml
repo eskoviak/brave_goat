@@ -27,7 +27,6 @@
             </value>
         </inputParameters>
     </actionCalls>
-    <apiVersion>49.0</apiVersion>
     <interviewLabel>CreateContact {!$Flow.CurrentDateTime}</interviewLabel>
     <label>CreateContact</label>
     <processMetadataValues>
@@ -53,7 +52,6 @@
         <connector>
             <targetReference>CreateContactFromPerson</targetReference>
         </connector>
-        <filterLogic>and</filterLogic>
         <filters>
             <field>ExternalId</field>
             <operator>EqualTo</operator>

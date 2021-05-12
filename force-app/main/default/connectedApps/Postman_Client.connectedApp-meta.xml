@@ -6,13 +6,6 @@
         <callbackUrl>https://llocalhost/callback</callbackUrl>
         <consumerKey>3MVG9KsVczVNcM8zNUmg6SI1wfCu5wcIb.yP3b8nMrS.5pcpMV2eSr2iup4DPf5bIAUy2mGBdI93sWoeVIaJt</consumerKey>
         <isAdminApproved>false</isAdminApproved>
-        <isConsumerSecretOptional>false</isConsumerSecretOptional>
-        <isIntrospectAllTokens>false</isIntrospectAllTokens>
-        <isSecretRequiredForRefreshToken>false</isSecretRequiredForRefreshToken>
         <scopes>Api</scopes>
     </oauthConfig>
-    <oauthPolicy>
-        <ipRelaxation>ENFORCE</ipRelaxation>
-        <refreshTokenPolicy>infinite</refreshTokenPolicy>
-    </oauthPolicy>
 </ConnectedApp>

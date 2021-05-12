@@ -3,7 +3,7 @@
     <enableAccessCheckCrucPref>false</enableAccessCheckCrucPref>
     <enableApiUserLtngOutAccessPref>false</enableApiUserLtngOutAccessPref>
     <enableAuraCDNPref>true</enableAuraCDNPref>
-    <enableAuraSecStaticResCRUCPref>false</enableAuraSecStaticResCRUCPref>
+    <enableAuraDepAccessChksCRUCPref xsi:nil="true"/>
     <enableFeedbackInMobile>true</enableFeedbackInMobile>
     <enableIE11DeprecationMsgHidden>false</enableIE11DeprecationMsgHidden>
     <enableIE11LEXCrucPref>false</enableIE11LEXCrucPref>
@@ -18,8 +18,6 @@
     <enableLEXOnIpadEnabled>false</enableLEXOnIpadEnabled>
     <enableLexEndUsersNoSwitching>false</enableLexEndUsersNoSwitching>
     <enableNavPersonalizationOptOut>false</enableNavPersonalizationOptOut>
-    <enableNoBackgroundNavigations>false</enableNoBackgroundNavigations>
-    <enableQuip>false</enableQuip>
     <enableRemoveThemeBrandBanner>false</enableRemoveThemeBrandBanner>
     <enableS1BannerPref>true</enableS1BannerPref>
     <enableS1BrowserEnabled>true</enableS1BrowserEnabled>
