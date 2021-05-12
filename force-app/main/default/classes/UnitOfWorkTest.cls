@@ -2,17 +2,17 @@
 private class UnitOfWorkTest {
 
     @isTest static void challengeComplete() {
-        SObjectUnitOfWork uow = new SObjectUnitOfWork(
+        fflib_SObjectUnitOfWork uow = new fflib_SObjectUnitOfWork(
             new Schema.SObjectType[] {
-                Note.SObjectType,
                 Contact.SObjectType,
-                Account.SObjectType
+                Account.SObjectType,
+                Note.SObjectType
             }
         );
         for(Integer a=0; a<100; a++){
             Account acc = new Account();
             acc.Name = 'OoW Test name' + a;
-            acc.Support_Tier__c = 'Gold';
+            acc.Support_Tier__c = 'Bronze';
             uow.registerNew(acc);
             for(integer i=0; i<5; i++) {
                 Contact c = new Contact();
@@ -20,7 +20,7 @@ private class UnitOfWorkTest {
                 c.LastName = 'UoW Test name' + (a*5)+i;
                 uow.registerNew(c, Contact.AccountId, acc);
                 Note n = new Note();
-                //n.ParentId = acc.Id;
+                n.Title = 'UoW Test Title' + (1*5)+i;
                 uow.registerNew(n, Note.ParentId, acc);
             }
         }
