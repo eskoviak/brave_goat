@@ -27,7 +27,6 @@
             </value>
         </inputParameters>
     </actionCalls>
-    <apiVersion>49.0</apiVersion>
     <interviewLabel>CreateContact {!$Flow.CurrentDateTime}</interviewLabel>
     <label>CreateContact</label>
     <processMetadataValues>
@@ -53,7 +52,6 @@
         <connector>
             <targetReference>CreateContactFromPerson</targetReference>
         </connector>
-        <filterLogic>and</filterLogic>
         <filters>
             <field>ExternalId</field>
             <operator>EqualTo</operator>
@@ -61,17 +59,9 @@
                 <elementReference>Person_ExternalID</elementReference>
             </value>
         </filters>
-        <getFirstRecordOnly>true</getFirstRecordOnly>
         <object>Person__x</object>
-        <storeOutputAutomatically>true</storeOutputAutomatically>
     </recordLookups>
-    <start>
-        <locationX>50</locationX>
-        <locationY>50</locationY>
-        <connector>
-            <targetReference>GetPersonRecords</targetReference>
-        </connector>
-    </start>
+    <startElementReference>GetPersonRecords</startElementReference>
     <status>Active</status>
     <variables>
         <description>The ExternalID (PersonKey) from the Person Object</description>

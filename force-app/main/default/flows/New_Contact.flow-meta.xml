@@ -22,9 +22,7 @@
                 <elementReference>contact.Id</elementReference>
             </value>
         </inputParameters>
-        <storeOutputAutomatically>true</storeOutputAutomatically>
     </actionCalls>
-    <apiVersion>49.0</apiVersion>
     <assignments>
         <name>Set_Contact_ID</name>
         <label>Set Contact ID</label>
@@ -141,7 +139,6 @@
         <connector>
             <targetReference>Update_or_Create</targetReference>
         </connector>
-        <filterLogic>and</filterLogic>
         <filters>
             <field>FirstName</field>
             <operator>EqualTo</operator>
@@ -156,9 +153,7 @@
                 <elementReference>contact.LastName</elementReference>
             </value>
         </filters>
-        <getFirstRecordOnly>true</getFirstRecordOnly>
         <object>Contact</object>
-        <storeOutputAutomatically>true</storeOutputAutomatically>
     </recordLookups>
     <recordUpdates>
         <name>Update_Contact</name>
@@ -242,27 +237,18 @@
                 </value>
             </inputParameters>
             <isRequired>true</isRequired>
-            <storeOutputAutomatically>true</storeOutputAutomatically>
         </fields>
         <showFooter>true</showFooter>
         <showHeader>true</showHeader>
     </screens>
-    <start>
-        <locationX>57</locationX>
-        <locationY>36</locationY>
-        <connector>
-            <targetReference>Contact_Info</targetReference>
-        </connector>
-    </start>
+    <startElementReference>Contact_Info</startElementReference>
     <status>Active</status>
     <textTemplates>
         <name>chatterPostTempate</name>
-        <isViewedAsPlainText>false</isViewedAsPlainText>
         <text>&lt;p&gt;Contact was {!created_or_updated}.&lt;/p&gt;</text>
     </textTemplates>
     <textTemplates>
         <name>chatterPostTemplate</name>
-        <isViewedAsPlainText>false</isViewedAsPlainText>
         <text>&lt;p&gt;The contact was {!created_or_updated}.&lt;/p&gt;</text>
     </textTemplates>
     <variables>

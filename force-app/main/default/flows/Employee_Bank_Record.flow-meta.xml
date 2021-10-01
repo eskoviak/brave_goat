@@ -10,7 +10,6 @@
         <connector>
             <targetReference>account_updated</targetReference>
         </connector>
-        <flowTransactionModel>Automatic</flowTransactionModel>
         <inputParameters>
             <name>accountName</name>
             <value>
@@ -42,7 +41,6 @@
         <connector>
             <targetReference>Does_account_exist</targetReference>
         </connector>
-        <flowTransactionModel>Automatic</flowTransactionModel>
         <inputParameters>
             <name>accountName</name>
             <value>
@@ -58,7 +56,6 @@
             <name>404Exc</name>
         </outputParameters>
     </actionCalls>
-    <apiVersion>51.0</apiVersion>
     <assignments>
         <name>assign_updated_account</name>
         <label>assign updated account</label>
@@ -154,7 +151,6 @@
         <connector>
             <targetReference>Check_account</targetReference>
         </connector>
-        <filterLogic>and</filterLogic>
         <filters>
             <field>LastName</field>
             <operator>EqualTo</operator>
@@ -238,13 +234,7 @@
         <showFooter>true</showFooter>
         <showHeader>true</showHeader>
     </screens>
-    <start>
-        <locationX>56</locationX>
-        <locationY>0</locationY>
-        <connector>
-            <targetReference>Employee_Bank_Record</targetReference>
-        </connector>
-    </start>
+    <startElementReference>Employee_Bank_Record</startElementReference>
     <status>Draft</status>
     <variables>
         <name>account</name>
