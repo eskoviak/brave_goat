@@ -65,6 +65,10 @@
                 <behavior>Edit</behavior>
                 <field>Person__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Publish_Satus__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>

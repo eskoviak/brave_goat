@@ -30,6 +30,14 @@
                 <behavior>Edit</behavior>
                 <field>CanStorePiiElsewhere</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Do_Not_Sell_My_Personal_Data__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Delete_My_Personal_Data__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>
