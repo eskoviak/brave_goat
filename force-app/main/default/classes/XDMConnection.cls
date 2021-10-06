@@ -67,6 +67,7 @@ global with sharing class XDMConnection
             personColumns.add(DataSource.Column.text('MPA_FormattedAddress'));
             personColumns.add(DataSource.Column.text('MPA_PostalCode'));
             personColumns.add(DataSource.Column.lookup('Contact', 'Contact'));
+            personColumns.add(DataSource.Column.lookup('Individual', 'Individual'));
             tables.add(DataSource.Table.get('Person', 'FullPersonName', personColumns));
 
             ///// PersonSales Table
@@ -264,8 +265,18 @@ global with sharing class XDMConnection
          * @param filter -- the filter string to apply
          * @return List<Map<String, Object>> The rows -- Map<String, Object> -- Each Map key represents the column name 
          * defined above; the value is it's contents.
+         * 
+         * ELS -- Updated 10.5.2021 to always return LVB
          */
         private List<Map<String, Object>> queryXdm(Entity e, View v, String filter) {
+            if ( e == Entity.Person) {
+                return parse(mockPersonResponse);
+            }
+            return new List<Map<String, Object>>();
+
+            /**
+             * 
+
             if (System.Test.isRunningTest()) {
                 // return appropriate mock
                 if(e == Entity.Person) {
@@ -294,6 +305,9 @@ global with sharing class XDMConnection
                     throw new DataSource.DataSourceException('Error in queryXDM: ' + String.valueOf(status));
                 }
             }
+            
+            */
+
         }
 
         /**
@@ -345,14 +359,25 @@ global with sharing class XDMConnection
         ' "records": [ ' +
         '   {' +
         '       "PersonKey": 17700326,' +
-        '       "FullPersonName": "Ludwig Von Beethoven"' +
+        '       "FullPersonName": "Ludwig Von Beethoven", ' +
+        '       "FirstName": "Ludwig", ' +
+        '       "LastName": "Beethoven", ' +
+        '       "MiddleName": "von"' +
+        '   }' +
+        ' ]' +
+        '}';
+        /*
         '   },' +
         '   {' +
         '       "PersonKey": 18350909,' +
         '       "FullPersonName": "Camille SaintSaens"' +
+        '       "FirstName": "Camille"' +
+        '       "LastName": "SaintSaens"' +
+        '       "MiddleName": ""' +
         '   }' +
         ' ]' +
         '}';
+        */
 
         static String mockSalesResponse = '{' +
         ' "records": [ ' +
