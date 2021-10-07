@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Individual__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>Individual</description>
+    <externalDeveloperName>Individual</externalDeveloperName>
+    <externalId>false</externalId>
+    <isFilteringDisabled>false</isFilteringDisabled>
+    <isNameField>false</isNameField>
+    <isSortingDisabled>false</isSortingDisabled>
+    <label>Individual</label>
+    <referenceTo>Individual</referenceTo>
+    <relationshipName>Individual</relationshipName>
+    <required>false</required>
+    <type>Lookup</type>
+</CustomField>

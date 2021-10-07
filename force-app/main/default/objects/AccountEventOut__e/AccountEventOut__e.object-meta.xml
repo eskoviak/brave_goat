@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Event which is emitted when an Account is created or changed.</description>
+    <eventType>HighVolume</eventType>
+    <label>AccountEventOut</label>
+    <pluralLabel>AccountEventsOut</pluralLabel>
+    <publishBehavior>PublishAfterCommit</publishBehavior>
+</CustomObject>

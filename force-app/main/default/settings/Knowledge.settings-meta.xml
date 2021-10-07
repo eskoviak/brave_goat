@@ -14,6 +14,10 @@
     <enableCreateEditOnArticlesTab>true</enableCreateEditOnArticlesTab>
     <enableExternalMediaContent>true</enableExternalMediaContent>
     <enableKnowledge>true</enableKnowledge>
+    <enableKnowledgeArticleTextHighlights>true</enableKnowledgeArticleTextHighlights>
+    <enableKnowledgeKeywordAutoComplete>true</enableKnowledgeKeywordAutoComplete>
+    <enableKnowledgeTitleAutoComplete>true</enableKnowledgeTitleAutoComplete>
+    <enableLightningKbAutoLoadRichTextField>false</enableLightningKbAutoLoadRichTextField>
     <enableLightningKnowledge>false</enableLightningKnowledge>
     <showArticleSummariesCustomerPortal>false</showArticleSummariesCustomerPortal>
     <showArticleSummariesInternalApp>false</showArticleSummariesInternalApp>
