@@ -266,12 +266,15 @@ global with sharing class XDMConnection
          * @return List<Map<String, Object>> The rows -- Map<String, Object> -- Each Map key represents the column name 
          * defined above; the value is it's contents.
          * 
-         * ELS -- Updated 10.5.2021 to always return LVB
+         * ELS -- Updated 10.5.2021 to always return Camille
          */
         private List<Map<String, Object>> queryXdm(Entity e, View v, String filter) {
-            if ( e == Entity.Person) {
+            if ( e == Entity.Person && v == View.GD) {
                 return parse(mockPersonResponse);
-            }
+            } else if ( e == Entity.Person && v == View.MD) {
+                return parse(mockPersonMDResponse);
+            } else if (e == Entity.PersonPhone && v == View.GD)
+                return parse(mockPersonPhoneResponse);
             return new List<Map<String, Object>>();
 
             /**
@@ -341,43 +344,34 @@ global with sharing class XDMConnection
          * These mocks only contain enough content to pass the tests
          */
         static String mockPersonPhoneResponse = '{' +
-            ' "records": [ ' +
+            ' \"records\": [ ' +
             '   {' +
-            '       "PersonPhoneKey": 888888888, ' +
-            '       "PhoneNumber": "8885551212",' +
-            '       "FID_PersonKey": 17700326' +
-            '   }, ' +
-            '   {' +
-            '       "PersonPhoneKey": 888888889, ' +
-            '       "PhoneNumber": "8885551212",' +
-            '       "FID_PersonKey": 18350909' +
+            '       \"PersonPhoneKey\": 888888889, ' +
+            '       \"PhoneNumber\": "8885551212", ' +
+            '       \"FID_PersonKey\": 18350909    ' +
             '   }' +
             ' ]' +
             '}';
 
         static String mockPersonResponse = '{' +
-        ' "records": [ ' +
+        ' \"records\" : [ ' +
         '   {' +
-        '       "PersonKey": 17700326,' +
-        '       "FullPersonName": "Ludwig Von Beethoven", ' +
-        '       "FirstName": "Ludwig", ' +
-        '       "LastName": "Beethoven", ' +
-        '       "MiddleName": "von"' +
+        '       \"PersonKey\": 18350909, ' +
+        '       \"FullPersonName\": \"Camille SaintSaens\", ' +
+        '       \"FirstName\": \"Camille\", ' +
+        '       \"LastName\": \"SaintSaens\" ' +
+        '   } '+
+        ' ] ' +
+        '} ';
+
+        static String mockPersonMDResponse = '{' +
+        ' \"records\" : [ ' +
+        '   {' +
+        '      \"SourceID\" : \"0031U00001UhjMLQAZ\"' +
         '   }' +
         ' ]' +
         '}';
-        /*
-        '   },' +
-        '   {' +
-        '       "PersonKey": 18350909,' +
-        '       "FullPersonName": "Camille SaintSaens"' +
-        '       "FirstName": "Camille"' +
-        '       "LastName": "SaintSaens"' +
-        '       "MiddleName": ""' +
-        '   }' +
-        ' ]' +
-        '}';
-        */
+
 
         static String mockSalesResponse = '{' +
         ' "records": [ ' +
