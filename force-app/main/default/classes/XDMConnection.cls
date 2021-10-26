@@ -209,8 +209,8 @@ global with sharing class XDMConnection
                                 List<Map<String, Object>> records = queryXdm(Entity.PersonPhone, View.GD, filterString);                            
                                 List<String> FID_Persons = new List<String>();
                                 for( Map<String, Object> record : records) {
-                                    if(record.get('FID_Person') != '' ) {
-                                        FID_Persons.add(String.valueOf(record.get('FID_Person')));
+                                    if(record.get('FID_PersonKey') != '' ) {
+                                        FID_Persons.add(String.valueOf(record.get('FID_PersonKey')));
                                     }
                                 }
                                 persons = queryXdm(Entity.Person, View.GD, 'PersonKey IN ' + String.valueOf(FID_Persons));
@@ -270,11 +270,15 @@ global with sharing class XDMConnection
          */
         private List<Map<String, Object>> queryXdm(Entity e, View v, String filter) {
             if ( e == Entity.Person && v == View.GD) {
-                return parse(mockPersonResponse);
+                if (filter.contains('18350909')) {
+                    return parse(mockPersonResponse);
+                }
             } else if ( e == Entity.Person && v == View.MD) {
                 return parse(mockPersonMDResponse);
             } else if (e == Entity.PersonPhone && v == View.GD)
-                return parse(mockPersonPhoneResponse);
+                if(filter.contains('8885551212')) {
+                    return parse(mockPersonPhoneResponse);    
+                }
             return new List<Map<String, Object>>();
 
             /**
@@ -359,7 +363,8 @@ global with sharing class XDMConnection
         '       \"PersonKey\": 18350909, ' +
         '       \"FullPersonName\": \"Camille SaintSaens\", ' +
         '       \"FirstName\": \"Camille\", ' +
-        '       \"LastName\": \"SaintSaens\" ' +
+        '       \"LastName\": \"SaintSaens\", ' +
+        '       \"EnrichedPrimaryEmail\" : \"csaint@music.fr\"  ' +
         '   } '+
         ' ] ' +
         '} ';
